@@ -1,1 +1,1 @@
-export { ExamplePlugin } from "./example-plugin";
+export { SsmTunnelPlugin } from "./ssm-tunnel-plugin";

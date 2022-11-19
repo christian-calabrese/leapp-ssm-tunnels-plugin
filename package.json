@@ -1,26 +1,21 @@
 {
-  "name": "example-plugin",
+  "name": "ssm_tunnel_plugin",
   "author": { 
-    "name": "Your Author name.surname",
-    "email": "Your email" 
+    "name": "christian.calabrese",
+    "email": "christian.calabrese@outlook.com" 
   },
-  "version": "Your semver version here e.g. 1.0.0",
-  "description": "Your plugin description here",
+  "version": "0.0.1",
+  "description": "Plugin to create SSM tunnels on the fly",
   "keywords": [
     "leapp-plugin",
-    "Add other tags here..."
+    "aws"
   ],
   "leappPlugin": {
     "supportedOS": [
-      "mac", "windows", "linux"
+      "mac", "linux"
     ],
     "supportedSessions": [
-      "awsIamRoleFederated",
-      "awsIamRoleChained",
-      "awsSsoRole",
-      "awsIamUser",
-      "aws",
-      "azure"
+      "awsIamRoleChained"
     ]
   },
   "scripts": {
