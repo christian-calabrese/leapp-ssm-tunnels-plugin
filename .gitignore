@@ -1,3 +1,5 @@
 node_modules
 plugin.js
 .idea
+ssm-conf.json
+ssm_tunnel_plugin/

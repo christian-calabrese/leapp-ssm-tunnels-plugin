@@ -1,0 +1,30 @@
+[
+  {
+    "sessionName": "session1",
+    "configs": [
+      {
+        "target": "i-0221y321bde21hi72",
+        "host": "account1-db.eu-south-1.rds.amazonaws.com",
+        "portNumber": "5432",
+        "localPortNumber": "3333"
+      },
+      {
+        "target": "i-0221y321bde21hi72",
+        "host": "vpc-elasticsearch-es-xxxxxxxxxxxxxxx.eu-south-1.es.amazonaws.com",
+        "portNumber": "443",
+        "localPortNumber": "9090"
+      }
+    ] 
+  },
+  {
+    "sessionName": "session2",
+    "configs": [
+      {
+        "target": "i-4321t4432ced62ih53",
+        "host": "account2-db.us-east-1.rds.amazonaws.com",
+        "portNumber": "5432",
+        "localPortNumber": "3333"
+      }
+    ] 
+  }
+]

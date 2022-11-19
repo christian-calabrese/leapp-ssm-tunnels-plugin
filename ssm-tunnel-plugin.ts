@@ -1,9 +1,8 @@
 import { Session } from "@noovolari/leapp-core/models/session";
-import { AwsIamRoleChainedSession } from "@noovolari/leapp-core/models/aws/aws-iam-role-chained-session";
 import { AwsCredentialsPlugin } from "@noovolari/leapp-core/plugin-sdk/aws-credentials-plugin";
 import { PluginLogLevel } from "@noovolari/leapp-core/plugin-sdk/plugin-log-level";
 import { SessionType } from "@noovolari/leapp-core/models/session-type";
-import SsmConfig from "~/ssm-conf.json";
+import SsmConfig from "./ssm-conf.json";
 
 
 export class SsmTunnelConfiguration {
@@ -14,7 +13,7 @@ export class SsmTunnelConfiguration {
 }
 
 export class SsmTunnelConfigurationsForRole {
-  roleArn: string;
+  sessionName: string;
   configs: SsmTunnelConfiguration[];
 }
 
@@ -33,10 +32,10 @@ export class SsmTunnelPlugin extends AwsCredentialsPlugin {
    * credentials   Credential-Info    my credentials object (https://github.com/Noovolari/leapp/blob/master/packages/core/src/models/credentials-info.ts)
    */
   async applySessionAction(session: Session, credentials: any): Promise<void> {
+    const platform = process.platform;
     let ssmConfig: SsmTunnelConfigurationsForRole[] = SsmConfig;
     if (session.type == SessionType.awsIamRoleChained) {
-      let roleChainedSession: AwsIamRoleChainedSession = session as AwsIamRoleChainedSession
-      const configurationForRoleExists = ssmConfig.find(item => item.roleArn === roleChainedSession.roleArn);
+      const configurationForRoleExists = ssmConfig.find(item => item.sessionName === session.sessionName);
       if (configurationForRoleExists !== undefined) {
         const env = {
           // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -48,7 +47,13 @@ export class SsmTunnelPlugin extends AwsCredentialsPlugin {
         };
         let currRoleConfiguration: SsmTunnelConfiguration[] = configurationForRoleExists.configs;
         currRoleConfiguration.forEach(currConfiguration => {
-          let command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters " & quoted form of "host=[\\"${currConfiguration.host}\\"],portNumber=[\\"${currConfiguration.portNumber}\\"],localPortNumber=[\\"${currConfiguration.localPortNumber}\\"]" & "`;
+          let command = "";
+          if (platform == "darwin") {
+            command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters " & quoted form of "host=[\\"${currConfiguration.host}\\"],portNumber=[\\"${currConfiguration.portNumber}\\"],localPortNumber=[\\"${currConfiguration.localPortNumber}\\"]" & "`;
+          } else {
+            command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters 'host=["${currConfiguration.host}"],portNumber=["${currConfiguration.portNumber}"],localPortNumber=["${currConfiguration.localPortNumber}"]'`;
+          }
+          
           this.pluginEnvironment.openTerminal(command, env)
           .then(() => {
             this.pluginEnvironment.log(command, PluginLogLevel.info, true);
@@ -59,7 +64,7 @@ export class SsmTunnelPlugin extends AwsCredentialsPlugin {
         });
       }
       else {
-        this.pluginEnvironment.log(`No SSM tunnel configuration found for role ${roleChainedSession.roleArn}`, PluginLogLevel.error, true);
+        this.pluginEnvironment.log(`No SSM tunnel configuration found for session called ${session.sessionName}`, PluginLogLevel.error, true);
       }
     }
 
