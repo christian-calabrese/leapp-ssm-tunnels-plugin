@@ -3,7 +3,7 @@
     <img src="https://github.com/Noovolari/leapp/blob/master/.github/images/README-1-dark.png#gh-light-mode-only" alt="Leapp" height="150" />
 </p>
 
-<h1 align="center">Leapp<br>SSM Tunnel Plugin</h1>
+<h1 align="center">Leapp<br>SSM Tunnels Plugin</h1>
 
 <h2>Introduction</h2>
 <p>This plugin aims to help developers and AWS users in general  to access private resources in all their AWS accounts in one click!</p>
@@ -61,4 +61,7 @@ You can use the previous example to create your own file and place it in the ins
 <h2>Plugin in action!</h2>
 It's possible to install and use this plugin as well explained by the Noovolari team throughout the Leapp's documentation that you can find here:
 <a href="https://docs.leapp.cloud/0.16.2/plugins/plugins-introduction/">Leapp plugins introduction</a><br><br>
+
+The npm package name to find and install this plugin is: `leapp-ssm-tunnels-plugin`
+
 <img src="how_to_use.jpg">

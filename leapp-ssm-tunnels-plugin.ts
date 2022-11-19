@@ -17,7 +17,7 @@ export class SsmTunnelConfigurationsForRole {
   configs: SsmTunnelConfiguration[];
 }
 
-export class SsmTunnelPlugin extends AwsCredentialsPlugin {
+export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
   get actionName(): string {
     return "Start SSM tunnels";
   }

@@ -1,1 +1,1 @@
-export { SsmTunnelPlugin } from "./ssm-tunnel-plugin";
+export { LeappSsmTunnelsPlugin } from "./leapp-ssm-tunnels-plugin";

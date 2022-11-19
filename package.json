@@ -1,11 +1,11 @@
 {
-  "name": "ssm_tunnel_plugin",
+  "name": "leapp-ssm-tunnels-plugin",
   "author": { 
     "name": "christian.calabrese",
     "email": "christian.calabrese@outlook.com" 
   },
   "version": "1.0.0",
-  "description": "Plugin to create SSM tunnels on the fly",
+  "description": "The Noovolari Leapp plugin to establish SSM tunnels on the fly!",
   "keywords": [
     "leapp-plugin",
     "aws"
