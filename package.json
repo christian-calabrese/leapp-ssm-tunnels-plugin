@@ -15,9 +15,11 @@
       "mac", "linux", "windows"
     ],
     "supportedSessions": [
+      "awsIamRoleFederated",
       "awsIamRoleChained",
-      "AwsIamRoleFederatedSession",
-      "AwsIamUserSession"
+      "awsSsoRole",
+      "awsIamUser",
+      "aws"
     ]
   },
   "scripts": {

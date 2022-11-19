@@ -56,7 +56,7 @@ export class SsmTunnelPlugin extends AwsCredentialsPlugin {
           
           this.pluginEnvironment.openTerminal(command, env)
           .then(() => {
-            this.pluginEnvironment.log(command, PluginLogLevel.info, true);
+            this.pluginEnvironment.log("Terminal command successfully started", PluginLogLevel.info, true);
           })
           .catch((err) => {
             this.pluginEnvironment.log(`Error while opening tunnel: ${err.message}`, PluginLogLevel.error, true);
