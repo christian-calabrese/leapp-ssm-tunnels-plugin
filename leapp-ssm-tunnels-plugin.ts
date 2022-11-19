@@ -2,8 +2,7 @@ import { Session } from "@noovolari/leapp-core/models/session";
 import { AwsCredentialsPlugin } from "@noovolari/leapp-core/plugin-sdk/aws-credentials-plugin";
 import { PluginLogLevel } from "@noovolari/leapp-core/plugin-sdk/plugin-log-level";
 import { SessionType } from "@noovolari/leapp-core/models/session-type";
-import SsmConfig from "./ssm-conf.json";
-
+import fs from 'fs'
 
 export class SsmTunnelConfiguration {
   target: string;
@@ -33,7 +32,16 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
    */
   async applySessionAction(session: Session, credentials: any): Promise<void> {
     const platform = process.platform;
-    let ssmConfig: SsmTunnelConfigurationsForRole[] = SsmConfig;
+
+    let pluginConfigPath;
+    var ssmConfig: SsmTunnelConfigurationsForRole[];
+    if (process.env.SSM_PLUGIN_PATH) {
+      pluginConfigPath = process.env.SSM_PLUGIN_PATH;
+      ssmConfig = JSON.parse(fs.readFileSync(process.env.SSM_PLUGIN_PATH, 'utf-8'));
+    } else {
+      ssmConfig = []
+    }
+
     if (session.type == SessionType.awsIamRoleChained) {
       const configurationForRoleExists = ssmConfig.find(item => item.sessionName === session.sessionName);
       if (configurationForRoleExists !== undefined) {
