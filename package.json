@@ -4,8 +4,13 @@
     "name": "christian.calabrese",
     "email": "christian.calabrese@outlook.com"
   },
-  "version": "1.0.3",
+  "icon": "icon.png",
+  "version": "1.0.6",
   "description": "The Noovolari Leapp plugin to establish SSM tunnels on the fly!",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/christian-calabrese/leapp-ssm-tunnels-plugin.git"
+  },
   "keywords": [
     "leapp-plugin",
     "aws"
