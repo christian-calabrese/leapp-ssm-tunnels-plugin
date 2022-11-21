@@ -31,7 +31,7 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
    */
   async applySessionAction(session: Session, credentials: any): Promise<void> {
     const platform = process.platform;
-    let ssmPluginPath = window.process.env.HOME + "/.Leapp/ssm-conf.json";
+    let ssmPluginPath = process.env.HOME + "/.Leapp/ssm-conf.json";
     let ssmConfig: SsmTunnelConfigurationsForRole[] = [];
     const parallelCommandsSeparator = platform == "win32" ? " | " : " & ";
 
