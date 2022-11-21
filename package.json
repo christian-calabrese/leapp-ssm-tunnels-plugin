@@ -5,7 +5,7 @@
     "email": "christian.calabrese@outlook.com"
   },
   "icon": "icon.png",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "The Noovolari Leapp plugin to establish SSM tunnels on the fly!",
   "repository": {
     "type": "git",
