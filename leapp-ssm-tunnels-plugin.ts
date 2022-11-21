@@ -33,6 +33,7 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
     const platform = process.platform;
     let ssmPluginPath = window.process.env.HOME + "/.Leapp/ssm-conf.json";
     let ssmConfig: SsmTunnelConfigurationsForRole[] = [];
+    const parallelCommandsSeparator = platform == "win32" ? " | " : " & ";
 
     try {
       ssmConfig = JSON.parse(fs.readFileSync(ssmPluginPath, 'utf-8'));
@@ -63,8 +64,8 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
       if (platform == "darwin") {
         commands.push(`wait`);
       }
-      let command = commands.join(" & ");
-      fs.writeFileSync("/Users/christiancalabrese/ttt.json", command);
+      let command = commands.join(parallelCommandsSeparator);
+
       this.pluginEnvironment.openTerminal(command, env)
       .then(() => {
         this.pluginEnvironment.log("Terminal command successfully started", PluginLogLevel.info, true);
