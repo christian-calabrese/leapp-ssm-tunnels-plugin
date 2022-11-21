@@ -55,9 +55,9 @@ You can find an example of such file in this repository called `ssm-conf.json.ex
 ]
 ```
 
-You can use the previous example to create your own file and place it in the path that you prefer. Then set the SSM_PLUGIN_PATH environment variable with it.<br><br>
+You can use the previous example to create your own file and place it in the Leapp installation folder.<br><br>
 For example:<br>
-`export SSM_PLUGIN_PATH=~/ssm-conf.json`
+`Users/leappuser/.Leapp/ssm-conf.json`
 
 <h2>Plugin in action!</h2>
 It's possible to install and use this plugin as well explained by the Noovolari team throughout the Leapp's documentation that you can find here:
