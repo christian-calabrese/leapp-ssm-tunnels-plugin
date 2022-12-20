@@ -59,6 +59,8 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
       currRoleConfiguration.forEach(currConfiguration => {
         if (platform == "darwin") {
           commands.push(`aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters " & quoted form of "host=[\\"${currConfiguration.host}\\"],portNumber=[\\"${currConfiguration.portNumber}\\"],localPortNumber=[\\"${currConfiguration.localPortNumber}\\"]" & "`);
+        } else if (platform == "win32") {
+          commands.push(`aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters host="${currConfiguration.host}",portNumber="${currConfiguration.portNumber}",localPortNumber="${currConfiguration.localPortNumber}"`);
         } else {
           commands.push(`aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters 'host=["${currConfiguration.host}"],portNumber=["${currConfiguration.portNumber}"],localPortNumber=["${currConfiguration.localPortNumber}"]'`);
         }
