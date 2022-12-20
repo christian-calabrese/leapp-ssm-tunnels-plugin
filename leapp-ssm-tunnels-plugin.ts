@@ -30,8 +30,10 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
    * credentials   Credential-Info    my credentials object (https://github.com/Noovolari/leapp/blob/master/packages/core/src/models/credentials-info.ts)
    */
   async applySessionAction(session: Session, credentials: any): Promise<void> {
+    const os = require('os');
     const platform = process.platform;
-    let ssmPluginPath = process.env.HOME + "/.Leapp/ssm-conf.json";
+    const homeDir = os.homedir();
+    let ssmPluginPath = homeDir + "/.Leapp/ssm-conf.json";
     let ssmConfig: SsmTunnelConfigurationsForRole[] = [];
     const parallelCommandsSeparator = platform == "win32" ? " | " : " & ";
 
