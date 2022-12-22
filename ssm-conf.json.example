@@ -20,7 +20,8 @@
     "sessionName": "session2",
     "configs": [
       {
-        "target": "i-4321t4432ced62ih53",
+        "targetTagKey": "Name",
+        "targetTagValue": "bastion",
         "host": "account2-db.us-east-1.rds.amazonaws.com",
         "portNumber": "5432",
         "localPortNumber": "3333"

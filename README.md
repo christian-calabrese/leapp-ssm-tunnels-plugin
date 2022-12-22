@@ -45,7 +45,8 @@ You can find an example of such file in this repository called `ssm-conf.json.ex
     "sessionName": "session2",
     "configs": [
       {
-        "target": "i-4321t4432ced62ih53",
+        "targetTagKey": "Name",
+        "targetTagValue": "bastion",
         "host": "account2-db.us-east-1.rds.amazonaws.com",
         "portNumber": "5432",
         "localPortNumber": "3333"
@@ -54,6 +55,7 @@ You can find an example of such file in this repository called `ssm-conf.json.ex
   }
 ]
 ```
+It is now possible to identify the target ec2 instance that you use as a bastion, by specifying a targetTagKey and a targetTagValue your instance is tagged with.
 
 You can use the previous example to create your own file and place it in the Leapp installation folder.<br><br>
 For example:<br>
