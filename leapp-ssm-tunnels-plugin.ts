@@ -98,8 +98,8 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
 
     try {
       ssmConfig = JSON.parse(fs.readFileSync(ssmPluginPath, 'utf-8'));
-    } catch {
-      this.pluginEnvironment.log(`No SSM tunnel configuration file found in ~/.Leapp/ssm-conf.json`, PluginLogLevel.error, true);
+    } catch(err) {
+      this.pluginEnvironment.log(`No SSM tunnel configuration file found in ~/.Leapp/ssm-conf.json - Error ${err.message}`, PluginLogLevel.error, true);
       return;
     }
 
@@ -128,10 +128,12 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
       }
 
       if (commands.length > 0 ) {
-        let command = commands.join(parallelCommandsSeparator);
-
-        this.pluginEnvironment.openTerminal(command, env)
-        .then(() => {
+        if (platform != "win32") {
+          commands = [commands.join(parallelCommandsSeparator)];
+        }
+        await Promise.all(commands.map(async (command) => {
+          this.pluginEnvironment.openTerminal(command, env)
+        })).then(() => {
           this.pluginEnvironment.log("Terminal command successfully started", PluginLogLevel.info, true);
         })
         .catch((err) => {
