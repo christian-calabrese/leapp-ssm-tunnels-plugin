@@ -1,7 +1,8 @@
-import { Session } from "@noovolari/leapp-core/models/session";
-import { AwsCredentialsPlugin } from "@noovolari/leapp-core/plugin-sdk/aws-credentials-plugin";
-import { PluginLogLevel } from "@noovolari/leapp-core/plugin-sdk/plugin-log-level";
-import fs from 'fs'
+import { Session } from '@noovolari/leapp-core/models/session';
+import { AwsCredentialsPlugin } from '@noovolari/leapp-core/plugin-sdk/aws-credentials-plugin';
+import { PluginLogLevel } from '@noovolari/leapp-core/plugin-sdk/plugin-log-level';
+import fs from 'fs';
+import yaml from 'yaml';
 
 export class SsmTunnelConfiguration {
   targetTagKey?: string;
@@ -39,11 +40,11 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
     let instanceId;
     let nextToken = null;
     let instances: any[] = [];
-    
+
     try {
       do {
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        const params: any = { MaxResults: 50, NextToken: nextToken, Filters: [{Key: `tag:${tagKey}`, Values: [tagValue]}] };
+        const params: any = { MaxResults: 50, NextToken: nextToken, Filters: [{ Key: `tag:${tagKey}`, Values: [tagValue] }] };
         const describeInstanceResponse = await ssmClient.describeInstanceInformation(params).promise();
         instances = instances.concat(describeInstanceResponse.InstanceInformationList);
         nextToken = describeInstanceResponse.NextToken;
@@ -52,7 +53,7 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
       if (instances.length > 0) {
         instanceId = instances[0].InstanceId;
       } else {
-        throw new Error(`Could not find any instance with the given tag (${tagKey})`); 
+        throw new Error(`Could not find any instance with the given tag (${tagKey})`);
       }
 
       return instanceId;
@@ -63,7 +64,7 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
 
   async getCommand(currConfiguration: SsmTunnelConfiguration, ssmClient: any, platform: string, session: any) {
     let command;
-    if (currConfiguration.targetTagKey !== undefined && currConfiguration.targetTagValue !== undefined) { 
+    if (currConfiguration.targetTagKey !== undefined && currConfiguration.targetTagValue !== undefined) {
       currConfiguration.target = await this.getBastionIdFromTag(currConfiguration.targetTagKey, currConfiguration.targetTagValue, ssmClient);
     }
 
@@ -92,14 +93,28 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
     const ssmClient = new aws.SSM();
     const platform = process.platform;
     const homeDir = os.homedir();
-    let ssmPluginPath = homeDir + "/.Leapp/ssm-conf.json";
+    let ssmPluginPath = homeDir + "/.Leapp/ssm-conf";
     let ssmConfig: SsmTunnelConfigurationsForRole[] = [];
     const parallelCommandsSeparator = platform == "win32" ? " | " : " & ";
+    let errors = { json: false, yaml: false }
+    let error_messages: string[] = []
 
     try {
-      ssmConfig = JSON.parse(fs.readFileSync(ssmPluginPath, 'utf-8'));
-    } catch(err) {
-      this.pluginEnvironment.log(`No SSM tunnel configuration file found in ~/.Leapp/ssm-conf.json - Error ${err.message}`, PluginLogLevel.error, true);
+      ssmConfig = JSON.parse(fs.readFileSync(`${ssmPluginPath}.json`, 'utf-8'));
+    } catch (err) {
+      errors.json = true
+      error_messages.push(err.message)
+    }
+
+    try {
+      ssmConfig = yaml.parse(fs.readFileSync(`${ssmPluginPath}.yaml`, 'utf-8'));
+    } catch (err) {
+      errors.yaml = true
+      error_messages.push(err.message)
+    }
+
+    if (Object.values(errors).every(Boolean)) {
+      this.pluginEnvironment.log(`No SSM tunnel configuration file found in ~/.Leapp/ssm-conf.json and ~/.Leapp/ssm-conf.yaml - Error ${error_messages.join('\n')}`, PluginLogLevel.error, true);
       return;
     }
 
@@ -115,7 +130,7 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
       };
       let currRoleConfiguration: SsmTunnelConfiguration[] = configurationForRoleExists.configs;
       let commands: string[] = []
-      
+
       await Promise.all(currRoleConfiguration.map(async (currConfiguration) => {
         let currCommand = await this.getCommand(currConfiguration, ssmClient, platform, session)
         if (currCommand !== undefined) {
@@ -127,7 +142,7 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
         commands.push(`wait`);
       }
 
-      if (commands.length > 0 ) {
+      if (commands.length > 0) {
         if (platform != "win32") {
           commands = [commands.join(parallelCommandsSeparator)];
         }
@@ -136,9 +151,9 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
         })).then(() => {
           this.pluginEnvironment.log("Terminal command successfully started", PluginLogLevel.info, true);
         })
-        .catch((err) => {
-          this.pluginEnvironment.log(`Error while opening tunnel: ${err.message}`, PluginLogLevel.error, true);
-        });
+          .catch((err) => {
+            this.pluginEnvironment.log(`Error while opening tunnel: ${err.message}`, PluginLogLevel.error, true);
+          });
       } else {
         this.pluginEnvironment.log(`No commands to execute`, PluginLogLevel.info, true);
       }

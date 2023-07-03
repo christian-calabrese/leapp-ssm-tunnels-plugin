@@ -18,7 +18,7 @@ The plugin uses the aws ssm start-session command to create secure and controlle
 
 <h2>How to configure the tunnels you need</h2>
 
-This plugin makes use of a json configuration file (`ssm-conf.json`) where you can specify the parameters needed to establish the tunnel.
+This plugin makes use of a json configuration file (`ssm-conf.json`) where you can specify the parameters needed to establish the tunnel. Alternatively (thanks to <a href="https://github.com/christian-calabrese/leapp-ssm-tunnels-plugin/issues/12">the issue by ibrahimjelliti</a>), it's also possible to use yaml to configure the plugin. The file will be called `ssm-conf.yaml` and it'll be possible to comment out unnecessary tunnels.
 
 You can find an example of such file in this repository called `ssm-conf.json.example`.
 
@@ -54,6 +54,29 @@ You can find an example of such file in this repository called `ssm-conf.json.ex
     ] 
   }
 ]
+```
+
+Also, you can find an example of such file in this repository called `ssm-conf.yaml.example`.
+
+```yaml
+---
+- sessionName: session1
+  configs:
+  - target: i-0221y321bde21hi72
+    host: account1-db.eu-south-1.rds.amazonaws.com
+    portNumber: '5432'
+    localPortNumber: '3333'
+  # - target: i-0221y321bde21hi72
+  #   host: vpc-elasticsearch-es-xxxxxxxxxxxxxxx.eu-south-1.es.amazonaws.com
+  #   portNumber: '443'
+  #   localPortNumber: '9090'
+- sessionName: session2
+  configs:
+  - targetTagKey: Name
+    targetTagValue: bastion
+    host: account2-db.us-east-1.rds.amazonaws.com
+    portNumber: '5432'
+    localPortNumber: '3333'
 ```
 It is now possible to identify the target ec2 instance that you use as a bastion, by specifying a targetTagKey and a targetTagValue your instance is tagged with.
 
