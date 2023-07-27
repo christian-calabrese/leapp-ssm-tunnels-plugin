@@ -8,7 +8,7 @@ export class SsmTunnelConfiguration {
   targetTagKey?: string;
   targetTagValue?: string;
   target?: string;
-  host: string;
+  host?: string;
   portNumber: string;
   localPortNumber: string;
 }
@@ -69,23 +69,32 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
     }
 
     if (currConfiguration.target !== undefined) {
-      if (platform == "darwin") {
-        command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters " & quoted form of "host=[\\"${currConfiguration.host}\\"],portNumber=[\\"${currConfiguration.portNumber}\\"],localPortNumber=[\\"${currConfiguration.localPortNumber}\\"]" & "`;
-      } else if (platform == "win32") {
-        command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters host="${currConfiguration.host}",portNumber="${currConfiguration.portNumber}",localPortNumber="${currConfiguration.localPortNumber}"`;
+      if (currConfiguration.host !== undefined) {
+        if (platform == "darwin") {
+          command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters " & quoted form of "host=[\\"${currConfiguration.host}\\"],portNumber=[\\"${currConfiguration.portNumber}\\"],localPortNumber=[\\"${currConfiguration.localPortNumber}\\"]" & "`;
+        } else if (platform == "win32") {
+          command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters host="${currConfiguration.host}",portNumber="${currConfiguration.portNumber}",localPortNumber="${currConfiguration.localPortNumber}"`;
+        } else {
+          command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters 'host=["${currConfiguration.host}"],portNumber=["${currConfiguration.portNumber}"],localPortNumber=["${currConfiguration.localPortNumber}"]'`;
+        }
       } else {
-        command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters 'host=["${currConfiguration.host}"],portNumber=["${currConfiguration.portNumber}"],localPortNumber=["${currConfiguration.localPortNumber}"]'`;
+        if (platform == "darwin") {
+          command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSession --parameters " & quoted form of "portNumber=[\\"${currConfiguration.portNumber}\\"],localPortNumber=[\\"${currConfiguration.localPortNumber}\\"]" & "`;
+        } else if (platform == "win32") {
+          command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSession --parameters portNumber="${currConfiguration.portNumber}",localPortNumber="${currConfiguration.localPortNumber}"`;
+        } else {
+          command = `aws ssm start-session --region ${session.region} --target ${currConfiguration.target} --document-name AWS-StartPortForwardingSession --parameters 'portNumber=["${currConfiguration.portNumber}"],localPortNumber=["${currConfiguration.localPortNumber}"]'`;
+        }
       }
     }
 
     return command;
   }
-
   /*
-   * @params
-   * session       Session            my session object (https://github.com/Noovolari/leapp/blob/master/packages/core/src/models/session.ts)
-   * credentials   Credential-Info    my credentials object (https://github.com/Noovolari/leapp/blob/master/packages/core/src/models/credentials-info.ts)
-   */
+     * @params
+     * session       Session            my session object (https://github.com/Noovolari/leapp/blob/master/packages/core/src/models/session.ts)
+     * credentials   Credential-Info    my credentials object (https://github.com/Noovolari/leapp/blob/master/packages/core/src/models/credentials-info.ts)
+     */
   async applySessionAction(session: Session, credentials: any): Promise<void> {
     const os = require('os');
     const aws = require('aws-sdk');
