@@ -36,7 +36,7 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
     };
   }
 
-  async getBastionIdFromTag(tagKey: string, tagValue: string, ssmClient: any): Promise<string> {
+  async getBastionIdFromTag(tagKey: string, tagValue: string, ssmClient: any, ec2Client: any): Promise<string> {
     let instanceId;
     let nextToken = null;
     let instances: any[] = [];
@@ -44,15 +44,31 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
     try {
       do {
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        const params: any = { MaxResults: 50, NextToken: nextToken, Filters: [{ Key: `tag:${tagKey}`, Values: [tagValue] }] };
+        const params: any = { MaxResults: 50, NextToken: nextToken };
+        if (!tagValue.includes('*')) {
+          params.Filters = [{ Key: `tag:${tagKey}`, Values: [tagValue] }];
+        }
+
         const describeInstanceResponse = await ssmClient.describeInstanceInformation(params).promise();
         instances = instances.concat(describeInstanceResponse.InstanceInformationList);
         nextToken = describeInstanceResponse.NextToken;
       } while (nextToken);
 
-      if (instances.length > 0) {
+      // If tagValue contains *, use the ec2Client on the instances to get the tags as the ssmClient does not return them
+      if (tagValue.includes('*')) {
+        instances = instances.filter(async (instance: any) => {
+          const { Tags } = await ec2Client.describeTags({ Filters: [{ Name: 'resource-id', Values: [instance.InstanceId] }] }).promise();
+          return Tags && Tags.some((tag: any) => tag.Key === tagKey && tag.Value.includes(tagValue.replace('*', '')));
+        });
+      }
+
+      if (instances.length === 1) {
         instanceId = instances[0].InstanceId;
+      } else if (instances.length > 1) {
+        this.pluginEnvironment.log(`Found multiple instances with the given tag and value (${tagKey}=${tagValue})`, PluginLogLevel.error, true);
+        throw new Error(`Found multiple instances with the given tag (${tagKey})`);
       } else {
+        this.pluginEnvironment.log(`Could not find any instance with the given tag and value (${tagKey}=${tagValue})`, PluginLogLevel.error, true);
         throw new Error(`Could not find any instance with the given tag (${tagKey})`);
       }
 
@@ -62,10 +78,10 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
     }
   }
 
-  async getCommand(currConfiguration: SsmTunnelConfiguration, ssmClient: any, platform: string, session: any) {
+  async getCommand(currConfiguration: SsmTunnelConfiguration, ssmClient: any, ec2Client: any, platform: string, session: any) {
     let command;
     if (currConfiguration.targetTagKey !== undefined && currConfiguration.targetTagValue !== undefined) {
-      currConfiguration.target = await this.getBastionIdFromTag(currConfiguration.targetTagKey, currConfiguration.targetTagValue, ssmClient);
+      currConfiguration.target = await this.getBastionIdFromTag(currConfiguration.targetTagKey, currConfiguration.targetTagValue, ssmClient, ec2Client);
     }
 
     if (currConfiguration.target !== undefined) {
@@ -100,6 +116,7 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
     const aws = require('aws-sdk');
     aws.config.update(LeappSsmTunnelsPlugin.setConfig(credentials, session.region));
     const ssmClient = new aws.SSM();
+    const ec2Client = new aws.EC2();
     const platform = process.platform;
     const homeDir = os.homedir();
     let ssmPluginPath = homeDir + "/.Leapp/ssm-conf";
@@ -141,7 +158,7 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
       let commands: string[] = []
 
       await Promise.all(currRoleConfiguration.map(async (currConfiguration) => {
-        let currCommand = await this.getCommand(currConfiguration, ssmClient, platform, session)
+        let currCommand = await this.getCommand(currConfiguration, ssmClient, ec2Client, platform, session)
         if (currCommand !== undefined) {
           commands.push(currCommand);
         }
