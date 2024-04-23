@@ -59,7 +59,19 @@ Create your configuration file and place it in the Leapp installation folder, fo
         "localPortNumber": "3333"
       }
     ] 
-  }
+  },
+  {
+    "sessionName": "session3",
+    "configs": [
+      {
+        "targetTagKey": "Name",
+        "targetTagValue": "*-bastion",
+        "host": "account2-db.us-east-1.rds.amazonaws.com",
+        "portNumber": "5432",
+        "localPortNumber": "3333"
+      }
+    ]
+  }  
 ]
 ```
 
@@ -90,9 +102,17 @@ Create your configuration file and place it in the Leapp installation folder, fo
     host: account2-db.us-east-1.rds.amazonaws.com
     portNumber: '5432'
     localPortNumber: '3333'
+- sessionName: session3
+  configs:
+  - targetTagKey: Name
+    targetTagValue: '*-bastion'
+    host: account2-db.us-east-1.rds.amazonaws.com
+    portNumber: '5432'
+    localPortNumber: '3333'
 ```
 
-You can identify the target EC2 instance used as a bastion by specifying a targetTagKey and targetTagValue that your instance is tagged with.
+You can identify the target EC2 instance used as a bastion by specifying a `targetTagKey` and `targetTagValue` that your instance is tagged with.
+The `targetTagValue` can contain a wildcard (e.g. `*-bastion`) so it does not need to be hardcoded, but do make sure you target this so only one instance is returned.
 
 Moreover, the `host` key is now optional. If not provided, the plugin will use the SSM document "AWS-StartPortForwardingSession" instead of "AWS-StartPortForwardingSessionToRemoteHost". This allows, for example, to expose a private webserver hosted on a single EC2 instance, or allow RDP access without having to specify the instance IP address.
 
