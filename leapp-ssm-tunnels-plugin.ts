@@ -120,20 +120,21 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
     const platform = process.platform;
     const homeDir = os.homedir();
     let ssmPluginPath = homeDir + "/.Leapp/ssm-conf";
-    let ssmConfig: SsmTunnelConfigurationsForRole[] = [];
+    let jsonConfig: SsmTunnelConfigurationsForRole[] = [];
+    let yamlConfig: SsmTunnelConfigurationsForRole[] = [];
     const parallelCommandsSeparator = platform == "win32" ? " | " : " & ";
     let errors = { json: false, yaml: false }
     let error_messages: string[] = []
 
     try {
-      ssmConfig = JSON.parse(fs.readFileSync(`${ssmPluginPath}.json`, 'utf-8'));
+      jsonConfig = JSON.parse(fs.readFileSync(`${ssmPluginPath}.json`, 'utf-8'));
     } catch (err) {
       errors.json = true
       error_messages.push(err.message)
     }
 
     try {
-      ssmConfig = yaml.parse(fs.readFileSync(`${ssmPluginPath}.yaml`, 'utf-8'));
+      yamlConfig = yaml.parse(fs.readFileSync(`${ssmPluginPath}.yaml`, 'utf-8'));
     } catch (err) {
       errors.yaml = true
       error_messages.push(err.message)
@@ -143,6 +144,27 @@ export class LeappSsmTunnelsPlugin extends AwsCredentialsPlugin {
       this.pluginEnvironment.log(`No SSM tunnel configuration file found in ~/.Leapp/ssm-conf.json and ~/.Leapp/ssm-conf.yaml - Error ${error_messages.join('\n')}`, PluginLogLevel.error, true);
       return;
     }
+
+    // Merge JSON and YAML configurations
+    const ssmConfigMap = new Map<string, SsmTunnelConfigurationsForRole>();
+
+    const mergeConfigs = (configs: SsmTunnelConfigurationsForRole[]) => {
+      configs.forEach(config => {
+        if (ssmConfigMap.has(config.sessionName)) {
+          const existingConfig = ssmConfigMap.get(config.sessionName);
+          if (existingConfig) {
+            existingConfig.configs.push(...config.configs);
+          }
+        } else {
+          ssmConfigMap.set(config.sessionName, { sessionName: config.sessionName, configs: [...config.configs] });
+        }
+      });
+    };
+
+    mergeConfigs(jsonConfig);
+    mergeConfigs(yamlConfig);
+
+    const ssmConfig = Array.from(ssmConfigMap.values());
 
     const configurationForRoleExists = ssmConfig.find(item => item.sessionName === session.sessionName);
     if (configurationForRoleExists !== undefined) {
